@@ -1,0 +1,95 @@
+/*
+    ETL Monitoramento Dashboard Schedules
+*/
+
+SELECT
+    CONCAT(
+        'SCHEDULE_',
+        RIGHT(
+            '00' + CAST(j.job_id AS VARCHAR(2)),
+            2
+        )
+    ) AS Schedule,
+
+    CONCAT(
+        'ETAPA_',
+        h.step_id
+    ) AS NomeEtapa,
+
+    CASE h.run_status
+        WHEN 0 THEN 'Falha'
+        WHEN 1 THEN 'Sucesso'
+        WHEN 2 THEN 'Tentativa'
+        WHEN 3 THEN 'Cancelado'
+        ELSE 'Desconhecido'
+    END AS Status,
+
+    CAST(
+        STUFF(
+            STUFF(
+                CAST(h.run_date AS VARCHAR(8)),
+                5,
+                0,
+                '-'
+            ),
+            8,
+            0,
+            '-'
+        )
+        + ' ' +
+        STUFF(
+            STUFF(
+                RIGHT(
+                    '000000' + CAST(h.run_time AS VARCHAR),
+                    6
+                ),
+                3,
+                0,
+                ':'
+            ),
+            6,
+            0,
+            ':'
+        )
+        AS DATETIME
+    ) AS DataExecucao,
+
+    STUFF(
+        STUFF(
+            RIGHT(
+                '000000' + CAST(h.run_duration AS VARCHAR),
+                6
+            ),
+            3,
+            0,
+            ':'
+        ),
+        6,
+        0,
+        ':'
+    ) AS Duracao,
+
+    (h.run_duration / 10000 * 3600)
+    +
+    ((h.run_duration % 10000) / 100 * 60)
+    +
+    (h.run_duration % 100) AS DuracaoSegundos,
+
+    s.subsystem AS TipoStep
+
+FROM msdb.dbo.sysjobhistory h
+
+INNER JOIN msdb.dbo.sysjobs j
+    ON h.job_id = j.job_id
+
+INNER JOIN msdb.dbo.sysjobsteps s
+    ON h.job_id = s.job_id
+    AND h.step_id = s.step_id
+
+WHERE
+    h.step_id > 0
+
+    AND h.run_date >= 20260101
+
+ORDER BY
+    DataExecucao DESC;
