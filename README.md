@@ -1,56 +1,128 @@
-ETL Monitoring Dashboard
+   ETL Monitoring Dashboard
 
-Dashboard em Power BI para acompanhar a saúde das rotinas de integração de dados (ETL) agendadas no SQL Server Agent.
+A Power BI dashboard designed to monitor the health and performance of scheduled ETL processes.
 
-A ideia é que em vez de abrir o histórico de jobs do SQL Server e procurar falhas manualmente, o dashboard mostra em uma única tela o que rodou, o que falhou, quanto tempo levou e qual é o status atual de cada schedule.
+The solution centralizes execution history, failures, execution times, schedule status, and data freshness into a single monitoring interface.
 
-  O que o dashboard responde
+Instead of manually reviewing SQL Server Agent job history to identify failures or performance issues, the dashboard provides a consolidated view of what ran, what failed, how long each execution took, and the current status of each schedule.
 
-- Está tudo rodando bem agora? Algum schedule falhou na última execução?
-- Quantas execuções aconteceram hoje e quantas falharam?
-- Qual a taxa de sucesso e de falha no período?
-- Quais schedules concentram mais falhas?
-- Quanto tempo as execuções levam em média, e qual foi a mais longa?
-- Há quanto tempo os dados foram atualizados?
+## What does the dashboard answer?
 
-  Visão geral da solução
+- Are the schedules currently running successfully?
+- Did any schedule fail during its latest execution?
+- How many executions occurred today?
+- How many executions failed?
+- What are the overall success and failure rates?
+- Which schedules have the highest number of failures?
+- What is the average execution time?
+- What was the longest execution?
+- How recently was the data updated?
+- What is the latest status of each schedule?
 
-SQL Server Agent (msdb)  ──►  Query T-SQL  ──►  Modelo Power BI  ──►  Dashboard
- sysjobs / sysjobsteps         sql/               tabelas +           indicadores,
- sysjobhistory                                    medidas DAX         alertas e tabelas
-                                                  dax/
+## Solution Overview
 
-1. Fonte: o histórico de execução dos jobs fica nas tabelas de sistema do msdb.
-2. Query: sql/query_schedule.sql consolida o histórico em uma linha por execução de etapa.
-3. Modelo: duas tabelas, Execucoes (resultado da query) e Atualização (data/hora do último refresh, por exemplo gerada com DateTime.LocalNow() no Power Query).
-4. Medidas: dax/indicadores.dax concentra todos os indicadores (taxas, tempos, status por schedule, alertas).
+```text
+SQL Server Agent (msdb)
+        │
+        ▼
+   T-SQL Query
+        │
+        ▼
+   Power BI Model
+        │
+        ▼
+     Dashboard
+        │
+        ├── KPIs
+        ├── Status Monitoring
+        ├── Failure Detection
+        ├── Execution Performance
+        └── Schedule Analysis
+```
 
-   Principais indicadores
+### Data Flow
 
-| Taxa de Sucesso / Falha (%) | Proporção de execuções com sucesso e com falha no período |
-| Total de Execuções | Volume total analisado |
-| Tempo Médio / Máximo | Duração média e da execução mais longa |
-| Execuções e Falhas Hoje | Volume do dia e quantas falharam |
-| Último Status por Schedule | Status da execução mais recente de cada schedule |
-| Status Geral (Atualização OK / Falha Detectada) | Alerta consolidado: acende se qualquer schedule falhou na última execução |
-| Atualizado há X min | Frescor dos dados exibidos |
-| Taxa de Sucesso por Schedule | Comparativo de confiabilidade entre schedules |
+1. **Source**  
+   SQL Server Agent execution history is stored in the `msdb` system database.
 
-  Tecnologias
+2. **SQL Layer**  
+   A T-SQL query consolidates job and step execution history into a structured dataset containing schedule, step, status, execution timestamp, and duration information.
 
-SQL Server · SQL Server Agent (msdb) · T-SQL · Power BI · DAX
+3. **Power BI Model**  
+   The resulting dataset is loaded into Power BI and organized into the `Execucoes` and `Atualização` tables.
 
-  Estrutura do repositório
+4. **DAX Layer**  
+   DAX measures calculate operational KPIs, execution rates, durations, latest schedule status, failure detection, and data freshness.
 
+5. **Dashboard**  
+   The indicators are presented through a centralized monitoring dashboard for faster operational analysis.
+
+## Key Indicators
+
+| Indicator | Description |
+|---|---|
+| **Success / Failure Rate (%)** | Proportion of successful and failed executions |
+| **Total Executions** | Total number of executions analyzed |
+| **Average / Maximum Execution Time** | Average execution duration and longest execution |
+| **Today's Executions / Failures** | Number of executions and failures for the current day |
+| **Latest Status by Schedule** | Most recent execution status for each schedule |
+| **Overall Status** | Consolidated status indicating whether a recent schedule failure was detected |
+| **Data Freshness** | Time elapsed since the last data refresh |
+| **Success Rate by Schedule** | Comparison of execution reliability across schedules |
+
+## Technologies
+
+- **Power BI**
+- **DAX**
+- **T-SQL**
+- **SQL Server**
+- **SQL Server Agent**
+- **Power Query**
+- **Data Visualization**
+
+## Repository Structure
+
+```text
 etl-monitoring-dashboard/
+│
 ├── README.md
+│
 ├── sql/
-│   └── query_schedule.sql     # consulta ao histórico do SQL Server Agent
+│   └── query_schedule.sql
+│
 ├── dax/
-│   └── indicadores.dax        # medidas do Power BI
+│   └── indicadores.dax
+│
 └── images/
-    └── dashboard.png          # print do dashboard
+    └── dashboard.png
+```
 
-  Autor
+### SQL
 
-[Denise Jesus Teixeira] · www.linkedin.com/in/denise-teixeira-ab1896146 
+The `sql` folder contains the T-SQL query responsible for extracting and transforming SQL Server Agent execution history into a dataset suitable for Power BI.
+
+### DAX
+
+The `dax` folder contains the Power BI measures used to calculate KPIs, execution rates, durations, schedule status, alerts, and data freshness.
+
+### Images
+
+The `images` folder contains screenshots of the dashboard and its visual components.
+
+## Dashboard Preview
+
+![ETL Monitoring Dashboard](images/dashboard.png)
+
+## Public Portfolio Version
+
+This repository is intended for portfolio and demonstration purposes.
+
+The public version uses a sanitized and generic project structure and does not expose proprietary business data, credentials, servers, or confidential organizational information.
+
+The objective is to demonstrate the technical approach, data modeling, SQL transformations, DAX calculations, and Power BI visualization used to build an ETL monitoring solution.
+
+  Author
+
+Denise Jesus Teixeira
+
+[LinkedIn](https://www.linkedin.com/in/denise-teixeira-ab1896146)
